@@ -23,19 +23,19 @@ help:
 setup:
 	@echo "Setting up configuration files..."
 	@if [ ! -f .env ]; then cp .env.example .env && echo "Created .env - please edit with your values"; else echo ".env already exists"; fi
-	@if [ ! -f terraform/terraform.tfvars ]; then cp terraform/terraform.tfvars.example terraform/terraform.tfvars && echo "Created terraform.tfvars - please edit with your values"; else echo "terraform.tfvars already exists"; fi
+	@if [ ! -f terraform.tfvars ]; then cp terraform.tfvars.example terraform.tfvars && echo "Created terraform.tfvars - please edit with your values"; else echo "terraform.tfvars already exists"; fi
 
 terraform-init:
-	cd terraform && terraform init
+	terraform init
 
 terraform-plan:
-	cd terraform && terraform plan
+	terraform plan
 
 terraform-apply:
-	cd terraform && terraform apply
+	terraform apply
 
 terraform-destroy:
-	cd terraform && terraform destroy
+	terraform destroy
 
 build:
 	docker-compose build

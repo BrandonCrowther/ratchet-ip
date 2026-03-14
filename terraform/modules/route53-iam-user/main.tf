@@ -1,19 +1,3 @@
-terraform {
-  required_version = ">= 1.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "aws" {
-  # Configure your AWS provider here or use environment variables
-  # region is optional for IAM resources but recommended
-}
-
 # IAM User for Route53 updates
 resource "aws_iam_user" "route53_updater" {
   name = var.iam_user_name

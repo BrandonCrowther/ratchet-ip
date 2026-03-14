@@ -43,7 +43,6 @@ Ratchet IP monitors your public IP address and automatically updates an AWS Rout
 Copy the example terraform variables file:
 
 ```bash
-cd terraform
 cp terraform.tfvars.example terraform.tfvars
 ```
 
@@ -59,7 +58,6 @@ iam_user_name    = "ratchet-ip-updater"    # IAM user name (optional)
 ### 2. Deploy AWS Infrastructure
 
 ```bash
-cd terraform
 terraform init
 terraform plan
 terraform apply
@@ -229,14 +227,19 @@ ratchet-ip/
 ├── Dockerfile                      # Container definition
 ├── docker-compose.yml              # Docker Compose configuration
 ├── .env.example                    # Environment variable template
+├── main.tf                         # Root Terraform config (backend & module invocation)
+├── variables.tf                    # Root Terraform input variables
+├── outputs.tf                      # Root Terraform outputs
+├── terraform.tfvars.example        # Variable values template
 ├── scripts/
 │   ├── entrypoint.sh              # Container startup script
 │   └── update-ip.sh               # Main IP update logic
 ├── terraform/
-│   ├── main.tf                    # AWS resources (IAM user, policy)
-│   ├── variables.tf               # Input variables
-│   ├── outputs.tf                 # Output values (credentials)
-│   └── terraform.tfvars.example   # Variable values template
+│   └── modules/
+│       └── route53-iam-user/      # Reusable Terraform module
+│           ├── main.tf            # IAM user and policy resources
+│           ├── variables.tf       # Module input variables
+│           └── outputs.tf         # Module outputs (credentials)
 └── README.md                      # This file
 ```
 

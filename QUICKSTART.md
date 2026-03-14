@@ -13,7 +13,6 @@ Get Ratchet IP up and running in 5 minutes.
 ### 1. Configure Terraform
 
 ```bash
-cd terraform
 cp terraform.tfvars.example terraform.tfvars
 ```
 

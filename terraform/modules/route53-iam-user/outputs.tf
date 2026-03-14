@@ -18,12 +18,3 @@ output "aws_secret_access_key" {
   value       = aws_iam_access_key.route53_updater_key.secret
   sensitive   = true
 }
-
-output "credentials_summary" {
-  description = "Summary of credentials for Docker container"
-  value = {
-    AWS_ACCESS_KEY_ID     = aws_iam_access_key.route53_updater_key.id
-    AWS_SECRET_ACCESS_KEY = aws_iam_access_key.route53_updater_key.secret
-  }
-  sensitive = true
-}
