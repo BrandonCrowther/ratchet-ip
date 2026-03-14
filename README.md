@@ -42,7 +42,7 @@ terraform apply
 # Automatically configure .env from Terraform outputs
 ./configure-env.sh
 
-# (Optional) Edit .env to customize DNS_RECORD_NAME or DNS_TTL
+# (Optional) Edit .env to customize DNS_TTL
 
 # Start the container
 docker-compose up -d

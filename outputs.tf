@@ -8,6 +8,11 @@ output "hosted_zone_name" {
   value       = data.aws_route53_zone.main.name
 }
 
+output "dns_record_name" {
+  description = "The DNS record name to update"
+  value       = var.dns_record_name
+}
+
 output "iam_user_name" {
   description = "Name of the IAM user"
   value       = module.route53_iam_user.iam_user_name
