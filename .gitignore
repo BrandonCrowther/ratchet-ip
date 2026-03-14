@@ -1,0 +1,29 @@
+# Environment files with secrets
+.env
+
+# Terraform files
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+*.tfstate
+*.tfstate.backup
+
+# Logs
+logs/
+*.log
+
+# Docker volumes
+docker-volumes/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
