@@ -8,7 +8,15 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Install AWS CLI v2
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        AWS_CLI_ARCH="x86_64"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        AWS_CLI_ARCH="aarch64"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-${AWS_CLI_ARCH}.zip" -o "awscliv2.zip" && \
     apt-get update && apt-get install -y unzip && \
     unzip awscliv2.zip && \
     ./aws/install && \
