@@ -1,10 +1,6 @@
 # Ratchet IP
 
-A Docker-based dynamic DNS solution for AWS Route53 that automatically updates your DNS records when your home IP address changes. Perfect for homelabs and self-hosted services.
-
-## Overview
-
-Ratchet IP monitors your public IP address and automatically updates one or more AWS Route53 A records when it changes. This allows you to access your homelab using a consistent domain name even with a dynamic IP address from your ISP.
+A Docker-based dynamic DNS solution for AWS Route53 that automatically updates your DNS records when your home IP address changes.
 
 ## Features
 
@@ -21,7 +17,6 @@ Ratchet IP monitors your public IP address and automatically updates one or more
 - AWS Account with Route53 hosted zone
 - Docker and Docker Compose
 - Terraform
-- Your domain's nameservers pointed to Route53
 
 ## Setup
 
@@ -31,7 +26,6 @@ Ratchet IP monitors your public IP address and automatically updates one or more
 # Copy and edit terraform variables
 cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars with your Route53 domain name and DNS records
-# Example: dns_record_names = ["home.example.com", "*.example.com"]
 
 # Deploy AWS infrastructure
 terraform init
@@ -44,8 +38,6 @@ terraform apply
 # Automatically configure .env from Terraform outputs
 ./configure-env.sh
 
-# (Optional) Edit .env to customize DNS_TTL
-
 # Start the container
 docker-compose up -d
 
@@ -54,6 +46,7 @@ docker-compose logs -f
 ```
 
 You should see output like:
+
 ```
 [2026-03-14 10:00:00] Starting IP check...
 [2026-03-14 10:00:00] Current public IP: 203.0.113.45
@@ -88,56 +81,19 @@ The Terraform module creates an IAM user with minimal permissions scoped to only
 - `route53:ListResourceRecordSets` - List records in the zone
 - `route53:GetChange` - Check status of DNS changes
 
-## Troubleshooting
-
-**Container won't start?**
-- Check environment variables: `docker-compose config`
-- Verify AWS credentials are correct
-
-**DNS not updating?**
-- Check logs: `docker-compose logs -f`
-- Verify hosted zone name in terraform.tfvars matches your Route53 zone
-- Ensure DNS record names include the full domain (e.g., `home.example.com` not just `home`)
-- For wildcard records, use `*.example.com` format
-
 **Check current stored IP:**
+
 ```bash
 docker-compose exec ratchet-ip cat /var/ratchet-ip/current_ip.txt
 ```
 
 **Force immediate update:**
+
 ```bash
 docker-compose exec ratchet-ip /app/update-ip.sh
 ```
 
 ## Customization
 
-**Change update frequency:** Edit the cron schedule in `scripts/entrypoint.sh`
-
-**Change DNS TTL:** Update `DNS_TTL` in `.env` (default: 300 seconds)
-
-## File Structure
-
-```
-ratchet-ip/
-├── main.tf                         # Root Terraform config (backend & module)
-├── variables.tf                    # Terraform input variables
-├── outputs.tf                      # Terraform outputs
-├── terraform.tfvars.example        # Variable values template
-├── configure-env.sh                # Auto-configure .env from Terraform outputs
-├── Dockerfile                      # Container definition
-├── docker-compose.yml              # Docker Compose configuration
-├── .env.example                    # Environment variable template
-├── scripts/
-│   ├── entrypoint.sh              # Container startup script
-│   └── update-ip.sh               # Main IP update logic
-└── terraform/modules/
-    └── route53-iam-user/          # Reusable Terraform module
-        ├── main.tf                # IAM user and policy resources
-        ├── variables.tf           # Module input variables
-        └── outputs.tf             # Module outputs (credentials)
-```
-
-## License
-
-MIT
+- **Change update frequency:** Edit the cron schedule in `scripts/entrypoint.sh` (TODO: parameterize this too)
+- **Change DNS TTL:** Update `DNS_TTL` in `.env` (default: 300 seconds)
