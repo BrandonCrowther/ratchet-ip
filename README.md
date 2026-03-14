@@ -1,6 +1,17 @@
 # Ratchet IP
 
-A Docker-based dynamic DNS solution for AWS Route53 that automatically updates your DNS records when your home IP address changes.
+Ratchet-Ip is a Docker-based dynamic DNS solution for AWS Route53 that automatically updates your DNS records when your home IP address changes.
+
+Is this a good idea? Not really. Will it violate the terms of service of your ISP? Definitely. Is it really funny? Absolutely.
+
+## Components
+
+- A small Terraform module containing:
+  - a single IAM user with permissions scoped to update your hosted zone only.
+- A Docker container containing:
+  - `awscli`
+  - `cron`
+- A bash script to periodically probe your ip address, and update your Route53 hosted zone when it changes.
 
 ## Features
 
@@ -80,6 +91,8 @@ The Terraform module creates an IAM user with minimal permissions scoped to only
 - `route53:ChangeResourceRecordSets` - Update DNS records (scoped to specific zone)
 - `route53:ListResourceRecordSets` - List records in the zone
 - `route53:GetChange` - Check status of DNS changes
+
+## Additional Commands
 
 **Check current stored IP:**
 
