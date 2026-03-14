@@ -68,12 +68,6 @@ You should see output like:
 [2026-03-14 10:00:02]   ✓ Route53 update successful. Change ID: /change/C124
 ```
 
-### 3. Stop the Container
-
-```bash
-docker-compose down
-```
-
 ## How It Works
 
 1. **Cron Schedule**: Every 30 minutes, the container runs the update script
@@ -93,6 +87,12 @@ The Terraform module creates an IAM user with minimal permissions scoped to only
 - `route53:GetChange` - Check status of DNS changes
 
 ## Additional Commands
+
+Kill the container
+
+```bash
+docker compose down -v
+```
 
 **Check current stored IP:**
 
