@@ -15,140 +15,57 @@ Ratchet IP monitors your public IP address and automatically updates an AWS Rout
 - Docker-based for easy deployment
 - Terraform infrastructure-as-code for AWS resources
 
-## Architecture
-
-```
-┌─────────────┐      ┌──────────────┐      ┌──────────────┐
-│   Docker    │      │  checkip.    │      │   Route53    │
-│  Container  │─────▶│ amazonaws.   │      │              │
-│   (cron)    │      │     com      │      │              │
-└─────────────┘      └──────────────┘      └──────────────┘
-       │                                            ▲
-       │                                            │
-       └────────────────────────────────────────────┘
-                  Update DNS if IP changed
-```
-
 ## Prerequisites
 
 - AWS Account with Route53 hosted zone
 - Docker and Docker Compose
-- Terraform (for AWS infrastructure setup)
+- Terraform
 - Your domain's nameservers pointed to Route53
 
 ## Setup
 
-### 1. Configure Terraform Variables
-
-Copy the example terraform variables file:
+### 1. Configure and Deploy Terraform
 
 ```bash
+# Copy and edit terraform variables
 cp terraform.tfvars.example terraform.tfvars
-```
+# Edit terraform.tfvars with your Route53 hosted zone ID and domain
 
-Edit `terraform.tfvars` with your values:
-
-```hcl
-hosted_zone_id   = "Z1234567890ABC"        # Your Route53 hosted zone ID
-hosted_zone_name = "example.com"           # Your domain name
-dns_record_name  = "home.example.com"      # The A record to update
-iam_user_name    = "ratchet-ip-updater"    # IAM user name (optional)
-```
-
-### 2. Deploy AWS Infrastructure
-
-```bash
+# Deploy AWS infrastructure
 terraform init
-terraform plan
 terraform apply
-```
 
-After applying, retrieve the AWS credentials:
-
-```bash
-# Get the access key ID (shown in output)
+# Save the credentials from the output
 terraform output aws_access_key_id
-
-# Get the secret access key (sensitive)
 terraform output -raw aws_secret_access_key
 ```
 
-### 3. Configure Docker Environment
-
-Copy the example environment file:
+### 2. Configure and Start Docker
 
 ```bash
-cd ..
+# Copy and edit environment variables
 cp .env.example .env
-```
+# Edit .env with the AWS credentials from terraform output
 
-Edit `.env` with the Terraform outputs:
-
-```bash
-AWS_ACCESS_KEY_ID=<from terraform output>
-AWS_SECRET_ACCESS_KEY=<from terraform output>
-AWS_DEFAULT_REGION=us-east-1
-
-HOSTED_ZONE_ID=Z1234567890ABC
-DNS_RECORD_NAME=home.example.com
-DNS_TTL=300
-```
-
-### 4. Start the Container
-
-```bash
+# Start the container
 docker-compose up -d
-```
 
-### 5. Verify Operation
-
-Check the logs to ensure it's working:
-
-```bash
+# View logs to verify
 docker-compose logs -f
 ```
 
 You should see output like:
-
 ```
 [2026-03-14 10:00:00] Starting IP check...
 [2026-03-14 10:00:00] Current public IP: 203.0.113.45
-[2026-03-14 10:00:00] No stored IP found. This is the first run.
 [2026-03-14 10:00:00] Updating Route53 with initial IP...
-[2026-03-14 10:00:01] Route53 update successful. Change ID: /change/C1234567890ABC
-[2026-03-14 10:00:01] Initial IP saved: 203.0.113.45
+[2026-03-14 10:00:01] Route53 update successful.
 ```
 
-## Usage
-
-### View Logs
-
-```bash
-# Follow logs in real-time
-docker-compose logs -f
-
-# View recent logs
-docker-compose logs --tail=50
-```
-
-### Manual IP Update
-
-Force an immediate IP check:
-
-```bash
-docker-compose exec ratchet-ip /app/update-ip.sh
-```
-
-### Stop the Service
+### 3. Stop the Container
 
 ```bash
 docker-compose down
-```
-
-### Restart the Service
-
-```bash
-docker-compose restart
 ```
 
 ## How It Works
@@ -161,7 +78,7 @@ docker-compose restart
 
 ## Security
 
-The Terraform configuration creates an IAM user with minimal permissions:
+The Terraform module creates an IAM user with minimal permissions scoped to only your specified hosted zone:
 
 - `route53:ListHostedZones` - List available hosted zones
 - `route53:GetHostedZone` - Get hosted zone details
@@ -169,84 +86,54 @@ The Terraform configuration creates an IAM user with minimal permissions:
 - `route53:ListResourceRecordSets` - List records in the zone
 - `route53:GetChange` - Check status of DNS changes
 
-These permissions are scoped to only the specified hosted zone, following AWS security best practices.
-
 ## Troubleshooting
 
-### Container won't start
+**Container won't start?**
+- Check environment variables: `docker-compose config`
+- Verify AWS credentials are correct
 
-Check environment variables:
-```bash
-docker-compose config
-```
+**DNS not updating?**
+- Check logs: `docker-compose logs -f`
+- Verify hosted zone ID matches your Route53 zone
+- Ensure DNS record name includes the full domain
 
-### DNS not updating
-
-1. Verify AWS credentials are correct
-2. Check IAM user has proper permissions
-3. Verify hosted zone ID is correct
-4. Check container logs for errors
-
-### Check current stored IP
-
+**Check current stored IP:**
 ```bash
 docker-compose exec ratchet-ip cat /var/ratchet-ip/current_ip.txt
 ```
 
+**Force immediate update:**
+```bash
+docker-compose exec ratchet-ip /app/update-ip.sh
+```
+
 ## Customization
 
-### Change Update Frequency
+**Change update frequency:** Edit the cron schedule in `scripts/entrypoint.sh`
 
-Edit the cron schedule in `scripts/entrypoint.sh`:
-
-```bash
-# Current: Every 30 minutes
-echo "*/30 * * * * /app/update-ip.sh >> /var/log/ratchet-ip.log 2>&1"
-
-# Every 15 minutes
-echo "*/15 * * * * /app/update-ip.sh >> /var/log/ratchet-ip.log 2>&1"
-
-# Every hour
-echo "0 * * * * /app/update-ip.sh >> /var/log/ratchet-ip.log 2>&1"
-```
-
-### Change DNS TTL
-
-Update the `DNS_TTL` value in `.env` (in seconds):
-
-```bash
-DNS_TTL=60    # 1 minute
-DNS_TTL=300   # 5 minutes (default)
-DNS_TTL=3600  # 1 hour
-```
+**Change DNS TTL:** Update `DNS_TTL` in `.env` (default: 300 seconds)
 
 ## File Structure
 
 ```
 ratchet-ip/
+├── main.tf                         # Root Terraform config (backend & module)
+├── variables.tf                    # Terraform input variables
+├── outputs.tf                      # Terraform outputs
+├── terraform.tfvars.example        # Variable values template
 ├── Dockerfile                      # Container definition
 ├── docker-compose.yml              # Docker Compose configuration
 ├── .env.example                    # Environment variable template
-├── main.tf                         # Root Terraform config (backend & module invocation)
-├── variables.tf                    # Root Terraform input variables
-├── outputs.tf                      # Root Terraform outputs
-├── terraform.tfvars.example        # Variable values template
 ├── scripts/
 │   ├── entrypoint.sh              # Container startup script
 │   └── update-ip.sh               # Main IP update logic
-├── terraform/
-│   └── modules/
-│       └── route53-iam-user/      # Reusable Terraform module
-│           ├── main.tf            # IAM user and policy resources
-│           ├── variables.tf       # Module input variables
-│           └── outputs.tf         # Module outputs (credentials)
-└── README.md                      # This file
+└── terraform/modules/
+    └── route53-iam-user/          # Reusable Terraform module
+        ├── main.tf                # IAM user and policy resources
+        ├── variables.tf           # Module input variables
+        └── outputs.tf             # Module outputs (credentials)
 ```
 
 ## License
 
 MIT
-
-## Contributing
-
-Issues and pull requests welcome!
