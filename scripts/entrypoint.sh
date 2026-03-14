@@ -19,8 +19,8 @@ if [ -z "$HOSTED_ZONE_ID" ]; then
     exit 1
 fi
 
-if [ -z "$DNS_RECORD_NAME" ]; then
-    echo "ERROR: DNS_RECORD_NAME environment variable is not set"
+if [ -z "$DNS_RECORD_NAMES" ]; then
+    echo "ERROR: DNS_RECORD_NAMES environment variable is not set"
     exit 1
 fi
 
@@ -28,7 +28,7 @@ fi
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 
 echo "Configuration:"
-echo "  DNS Record: $DNS_RECORD_NAME"
+echo "  DNS Records: $DNS_RECORD_NAMES"
 echo "  Hosted Zone ID: $HOSTED_ZONE_ID"
 echo "  AWS Region: $AWS_DEFAULT_REGION"
 

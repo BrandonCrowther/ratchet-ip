@@ -3,9 +3,9 @@ variable "hosted_zone_name" {
   type        = string
 }
 
-variable "dns_record_name" {
-  description = "The DNS record name to update (e.g., home.example.com)"
-  type        = string
+variable "dns_record_names" {
+  description = "List of DNS record names to update (e.g., [\"home.example.com\", \"*.example.com\"])"
+  type        = list(string)
 }
 
 variable "iam_user_name" {

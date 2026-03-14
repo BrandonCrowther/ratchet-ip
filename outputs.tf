@@ -8,9 +8,9 @@ output "hosted_zone_name" {
   value       = data.aws_route53_zone.main.name
 }
 
-output "dns_record_name" {
-  description = "The DNS record name to update"
-  value       = var.dns_record_name
+output "dns_record_names" {
+  description = "Comma-separated list of DNS record names to update (for .env file)"
+  value       = join(",", var.dns_record_names)
 }
 
 output "iam_user_name" {

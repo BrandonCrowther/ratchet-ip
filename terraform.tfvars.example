@@ -1,5 +1,6 @@
 # Copy this file to terraform.tfvars and fill in your values
-
 hosted_zone_name = "example.com"
-dns_record_name  = "home.example.com"
-iam_user_name    = "ratchet-ip-updater"
+# List of DNS records to update with your public IP
+# Can be a single record or multiple records (e.g., apex, wildcard, subdomain)
+dns_record_names = ["home.example.com", "*.example.com"]
+iam_user_name = "ratchet-ip-updater"

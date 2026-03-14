@@ -4,11 +4,12 @@ A Docker-based dynamic DNS solution for AWS Route53 that automatically updates y
 
 ## Overview
 
-Ratchet IP monitors your public IP address and automatically updates an AWS Route53 A record when it changes. This allows you to access your homelab using a consistent domain name even with a dynamic IP address from your ISP.
+Ratchet IP monitors your public IP address and automatically updates one or more AWS Route53 A records when it changes. This allows you to access your homelab using a consistent domain name even with a dynamic IP address from your ISP.
 
 ## Features
 
 - Automatic IP detection using AWS's own service
+- Support for multiple DNS records (apex, wildcard, subdomains)
 - Intelligent updates (only updates Route53 when IP actually changes)
 - Runs every 30 minutes via cron
 - Minimal AWS IAM permissions (principle of least privilege)
@@ -29,7 +30,8 @@ Ratchet IP monitors your public IP address and automatically updates an AWS Rout
 ```bash
 # Copy and edit terraform variables
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your Route53 domain name and DNS record
+# Edit terraform.tfvars with your Route53 domain name and DNS records
+# Example: dns_record_names = ["home.example.com", "*.example.com"]
 
 # Deploy AWS infrastructure
 terraform init
@@ -55,8 +57,11 @@ You should see output like:
 ```
 [2026-03-14 10:00:00] Starting IP check...
 [2026-03-14 10:00:00] Current public IP: 203.0.113.45
-[2026-03-14 10:00:00] Updating Route53 with initial IP...
-[2026-03-14 10:00:01] Route53 update successful.
+[2026-03-14 10:00:00] Updating 2 DNS record(s)...
+[2026-03-14 10:00:00] Updating Route53 record: home.example.com -> 203.0.113.45
+[2026-03-14 10:00:01]   ✓ Route53 update successful. Change ID: /change/C123
+[2026-03-14 10:00:01] Updating Route53 record: *.example.com -> 203.0.113.45
+[2026-03-14 10:00:02]   ✓ Route53 update successful. Change ID: /change/C124
 ```
 
 ### 3. Stop the Container
@@ -70,7 +75,7 @@ docker-compose down
 1. **Cron Schedule**: Every 30 minutes, the container runs the update script
 2. **IP Detection**: Queries `https://checkip.amazonaws.com` for current public IP
 3. **Comparison**: Compares current IP with stored IP from previous run
-4. **Update**: If different (or first run), updates Route53 A record via AWS CLI
+4. **Update**: If different (or first run), updates all configured Route53 A records via AWS CLI
 5. **Storage**: Saves new IP to `/var/ratchet-ip/current_ip.txt`
 
 ## Security
@@ -92,7 +97,8 @@ The Terraform module creates an IAM user with minimal permissions scoped to only
 **DNS not updating?**
 - Check logs: `docker-compose logs -f`
 - Verify hosted zone name in terraform.tfvars matches your Route53 zone
-- Ensure DNS record name includes the full domain
+- Ensure DNS record names include the full domain (e.g., `home.example.com` not just `home`)
+- For wildcard records, use `*.example.com` format
 
 **Check current stored IP:**
 ```bash
