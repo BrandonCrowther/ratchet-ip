@@ -26,9 +26,15 @@ provider "aws" {
   }
 }
 
+# Look up the hosted zone by domain name
+data "aws_route53_zone" "main" {
+  name         = var.hosted_zone_name
+  private_zone = false
+}
+
 module "route53_iam_user" {
   source = "./terraform/modules/route53-iam-user"
 
-  hosted_zone_id = var.hosted_zone_id
+  hosted_zone_id = data.aws_route53_zone.main.zone_id
   iam_user_name  = var.iam_user_name
 }

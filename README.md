@@ -29,23 +29,20 @@ Ratchet IP monitors your public IP address and automatically updates an AWS Rout
 ```bash
 # Copy and edit terraform variables
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your Route53 hosted zone ID and domain
+# Edit terraform.tfvars with your Route53 domain name and DNS record
 
 # Deploy AWS infrastructure
 terraform init
 terraform apply
-
-# Save the credentials from the output
-terraform output aws_access_key_id
-terraform output -raw aws_secret_access_key
 ```
 
 ### 2. Configure and Start Docker
 
 ```bash
-# Copy and edit environment variables
-cp .env.example .env
-# Edit .env with the AWS credentials from terraform output
+# Automatically configure .env from Terraform outputs
+./configure-env.sh
+
+# (Optional) Edit .env to customize DNS_RECORD_NAME or DNS_TTL
 
 # Start the container
 docker-compose up -d
@@ -94,7 +91,7 @@ The Terraform module creates an IAM user with minimal permissions scoped to only
 
 **DNS not updating?**
 - Check logs: `docker-compose logs -f`
-- Verify hosted zone ID matches your Route53 zone
+- Verify hosted zone name in terraform.tfvars matches your Route53 zone
 - Ensure DNS record name includes the full domain
 
 **Check current stored IP:**
@@ -121,6 +118,7 @@ ratchet-ip/
 ├── variables.tf                    # Terraform input variables
 ├── outputs.tf                      # Terraform outputs
 ├── terraform.tfvars.example        # Variable values template
+├── configure-env.sh                # Auto-configure .env from Terraform outputs
 ├── Dockerfile                      # Container definition
 ├── docker-compose.yml              # Docker Compose configuration
 ├── .env.example                    # Environment variable template
