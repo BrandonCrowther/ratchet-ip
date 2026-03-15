@@ -32,14 +32,27 @@ echo "  DNS Records: $DNS_RECORD_NAMES"
 echo "  Hosted Zone ID: $HOSTED_ZONE_ID"
 echo "  AWS Region: $AWS_DEFAULT_REGION"
 
+# Export environment variables to a file for cron to use
+cat > /app/env.sh << EOF
+export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+export AWS_DEFAULT_REGION="$AWS_DEFAULT_REGION"
+export HOSTED_ZONE_ID="$HOSTED_ZONE_ID"
+export DNS_RECORD_NAMES="$DNS_RECORD_NAMES"
+export DNS_TTL="$DNS_TTL"
+EOF
+
+chmod 600 /app/env.sh
+
 # Create crontab entry - run every 30 minutes
-echo "*/30 * * * * /app/update-ip.sh >> /var/log/ratchet-ip.log 2>&1" > /etc/cron.d/ratchet-ip
+# Note: /etc/cron.d/ files require user field and must end with newline
+cat > /etc/cron.d/ratchet-ip << 'CRONEOF'
+*/30 * * * * root . /app/env.sh && /app/update-ip.sh >> /var/log/ratchet-ip.log 2>&1
+
+CRONEOF
 
 # Give execution rights on the cron job
 chmod 0644 /etc/cron.d/ratchet-ip
-
-# Apply cron job
-crontab /etc/cron.d/ratchet-ip
 
 # Create log file
 touch /var/log/ratchet-ip.log
