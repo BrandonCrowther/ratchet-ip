@@ -61,6 +61,6 @@ touch /var/log/ratchet-ip.log
 echo "Running initial IP check..."
 /app/update-ip.sh
 
-# Start cron in the foreground
+# Start cron in the foreground and tail the log file to stdout
 echo "Starting cron daemon..."
-cron -f
+cron && tail -f /var/log/ratchet-ip.log
